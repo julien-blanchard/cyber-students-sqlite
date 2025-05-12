@@ -12,6 +12,9 @@ def get_users(db):
     'email': 1,
     'password': 1,
     'displayName': 1,
+    "dateOfBirth": 1,
+    "disabilities": 1,
+    "phoneNumber": 1
   })
   docs = yield cur.to_list(length=None)
   print('There are ' + str(len(docs)) + ' registered users:')

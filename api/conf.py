@@ -8,3 +8,5 @@ MONGODB_HOST = {
 MONGODB_DBNAME = 'cyberStudents'
 
 WORKERS = 32
+
+STREAM_KEY = "ihavealwayslovedfourcheesepizzas"

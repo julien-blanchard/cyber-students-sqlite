@@ -18,7 +18,7 @@ from .encryption_decryption import *
 from .database_operations import *
 
 # Stream cipher key from the config file, as per the instructions doc
-from api.conf import STREAM_KEY
+from api.conf import STREAM_KEY, PEPPER
 
 # Path to the SQLite databases, will work on any os
 PATH_CURR = os.getcwd()
@@ -88,14 +88,16 @@ class RegistrationHandler(BaseHandler):
         if user is not None:
             self.send_error(409, message='A user with the given email address already exists!')
             return
-
-        # Encryption, based on the functions stored in encryption_decryption.py
-        encrypted_password, salt = hashToScrypt(password)
         
         # preparing the salts / nonces for each user. Using .hex() as they'll be stored as strings within the db
+        salt = os.urandom(16)
         salt_as_hex = salt.hex()
         nonce = os.urandom(16)
         nonce_as_hex = nonce.hex()
+        pepper_as_hex = PEPPER
+
+        # Encryption, based on the functions stored in encryption_decryption.py
+        encrypted_password = hashToScrypt(password,salt_as_hex,PEPPER)
 
         # encrypting each field using a unique key-nonce pair per user
         encrypted_full_address = encryptToChaCha(STREAM_KEY,nonce_as_hex,full_address)
@@ -128,6 +130,5 @@ class RegistrationHandler(BaseHandler):
         self.response["dateOfBirth"] = date_of_birth
         self.response["disabilities"] = disabilities
         self.response["phoneNumber"] = phone_number
-        self.response["Salt"] = salt_as_hex
 
         self.write_json()

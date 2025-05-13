@@ -34,10 +34,11 @@ def decryptFromChaCha(path_to_key,path_to_nonce,cipher_to_decrypt):
     result = chacha20_decryptor.update(cipher_as_bytes)
     return result
 
-def hashToScrypt(path_to_password):
-    salt = os.urandom(16)
+def hashToScrypt(path_to_password, path_to_salt, path_to_pepper):
+    salt_as_bytes = bytes.fromhex(path_to_salt)
+    pepper_as_bytes = bytes.fromhex(path_to_pepper)
     kdf = Scrypt(
-        salt=salt,
+        salt=salt_as_bytes + pepper_as_bytes,
         length=32,
         n=2 ** 14,
         r=8,
@@ -45,15 +46,16 @@ def hashToScrypt(path_to_password):
     )
     passphrase_as_bytes = bytes(path_to_password, "utf-8")
     result = kdf.derive(passphrase_as_bytes)
-    return result, salt
+    return result
 
-def dehashFromScrypt(path_to_password, path_to_hashed_password, path_to_salt):
+def dehashFromScrypt(path_to_password, path_to_hashed_password, path_to_salt, path_to_pepper):
     salt_as_bytes = bytes.fromhex(path_to_salt)
+    pepper_as_bytes = bytes.fromhex(path_to_pepper)
     password_as_bytes = bytes(path_to_password, "utf-8")
     key_as_bytes = bytes.fromhex(path_to_hashed_password)
 
     kdf = Scrypt(
-        salt=salt_as_bytes,
+        salt=salt_as_bytes + pepper_as_bytes,
         length=32,
         n=2 ** 14,
         r=8,

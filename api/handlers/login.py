@@ -17,6 +17,7 @@ from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 # local imports
 from .encryption_decryption import *
 from .database_operations import *
+from api.conf import PEPPER
 
 # Path to the SQLite database, will work on any os
 PATH_CURR = os.getcwd()
@@ -77,9 +78,10 @@ class LoginHandler(BaseHandler):
 
         # Now that we now the email, we retrieve its corresponding salt from the SQLite database
         salt_as_hex = retrieveFromTable(PATH_TO_SALTS_DB,"SALTS",email)
+        pepper_as_hex = PEPPER
 
         # it took me a while to figure this out: matching plaintexts return None, non matching ones raise an error (changed to 0 in my function)
-        hash_match = dehashFromScrypt(password,user["password"],salt_as_hex)
+        hash_match = dehashFromScrypt(password,user["password"],salt_as_hex,pepper_as_hex)
 
         # slight change to what was there before, but same logic really
         if hash_match is not None:

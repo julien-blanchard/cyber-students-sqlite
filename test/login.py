@@ -10,6 +10,14 @@ from api.handlers.login import LoginHandler
 
 import urllib.parse
 
+from api.conf import STREAM_KEY, PEPPER, SALT_TEST
+from api.handlers.encryption_decryption import *
+from api.handlers.database_operations import *
+
+PATH_CURR = os.getcwd()
+PATH_TO_NONCES_DB = os.path.join(PATH_CURR,"databases","db_nonces.db")
+PATH_TO_SALTS_DB = os.path.join(PATH_CURR,"databases","db_salts.db")
+
 class LoginHandlerTest(BaseTest):
 
     @classmethod
@@ -19,10 +27,21 @@ class LoginHandlerTest(BaseTest):
 
     @coroutine
     def register(self):
+        salt_as_hex = SALT_TEST
+        pepper_as_hex = PEPPER
+
+        # Encryption, based on the functions stored in encryption_decryption.py
+        encrypted_password = hashToScrypt(self.password,salt_as_hex,pepper_as_hex)
+        updateTable(PATH_TO_SALTS_DB,"SALTS",self.email,salt_as_hex)
+        
         yield self.get_app().db.users.insert_one({
             'email': self.email,
-            'password': self.password,
-            'displayName': 'testDisplayName'
+            'password': encrypted_password.hex(),
+            'displayName': 'testDisplayName',
+            "fullAddress": "testFullAddress",
+            "dateOfBirth": "testDateOfBirth",
+            "disabilities": "testDisabilities",
+            "phoneNumber": "testPhoneNumber"
         })
 
     def setUp(self):
